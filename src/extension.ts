@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import Model from './model';
+import Configuration from './configuration';
 
 type Status = 'loading'|'pulling'|'ready'|'failed';
 
 interface ExtensionProps {
-	model: Model
+	model: Model,
 }
 
 // Extension mostly provides state-machine mechanics surrounding the underlying model and binds
@@ -12,10 +13,10 @@ interface ExtensionProps {
 class Extension {
 	private status: Status = 'loading';
 	private failed: Error|null = null;
-	private model: Model
+	private model: Model;
 
 	constructor({ model }: ExtensionProps) {
-		this.model = model		
+		this.model = model;
 		
 		this.load();
 	}
@@ -133,13 +134,28 @@ let extension: Extension;
 
 export function activate(context: vscode.ExtensionContext) {
 	extension = new Extension({
-		model: new Model(),
+		model: new Model({
+			language: Configuration.language,
+			model: Configuration.model,
+			host: Configuration.address,
+		}),
 	});
 
 	[
 		vscode.commands.registerCommand('ollama-translate.stat', () => extension.stat()),
 		vscode.commands.registerCommand('ollama-translate.pull', () => extension.pull()),
 		vscode.commands.registerCommand('ollama-translate.translate', () => extension.translate()),
+		vscode.commands.registerCommand('ollama-translate.reload', () => {
+			extension?.abort();
+
+			extension = new Extension({
+				model: new Model({
+					language: Configuration.language,
+					model: Configuration.model,
+					host: Configuration.address,
+				}),
+			});
+		}),
 	].forEach((disposable) => {
 		context.subscriptions.push(disposable);
 	});

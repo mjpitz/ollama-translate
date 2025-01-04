@@ -11,22 +11,6 @@
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "ollama-translate.stat",
-        "title": "Ollama Translate: Model Status"
-      },
-      {
-        "command": "ollama-translate.pull",
-        "title": "Ollama Translate: Update Model"
-      },
-      {
-        "command": "ollama-translate.translate",
-        "title": "Ollama Translate: Translate Selected Text"
-      }
-    ]
-  },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
@@ -54,5 +38,44 @@
     "npm-run-all": "^4.1.5",
     "ollama": "^0.5.11",
     "typescript": "^5.7.2"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "ollama-translate.reload",
+        "title": "Ollama Translate: Reload"
+      },
+      {
+        "command": "ollama-translate.stat",
+        "title": "Ollama Translate: Model Status"
+      },
+      {
+        "command": "ollama-translate.pull",
+        "title": "Ollama Translate: Update Model"
+      },
+      {
+        "command": "ollama-translate.translate",
+        "title": "Ollama Translate: Translate Selected Text"
+      }
+    ],
+    "configuration": {
+      "title": "Ollama Translate",
+      "properties": {
+        "ollama-translate.language": {
+          "description": "This is the language you prefer to read your comments in.",
+          "type": "string",
+          "default": "English"
+        },
+        "ollama-translate.ollamaModel": {
+          "description": "Which Ollama model is used for performing translation.",
+          "type": "string",
+          "default": "mistral-small:latest"
+        },
+        "ollama-translate.ollamaAddress": {
+          "description": "Configure a different address for the Ollama service.",
+          "type": "string"
+        }
+      }
+    }
   }
 }

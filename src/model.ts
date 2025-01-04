@@ -1,5 +1,6 @@
 import { Message, ModelResponse, Ollama } from 'ollama';
 
+// I used a llama3.2 chat to help craft this system prompt template.
 const systemPrompt = (language: string) => `
 You are an expert linguist capable of translating a variety of languages into ${language},
 priortizing native fluency and technical terminology accuracy. Translate the provided text into
@@ -57,8 +58,6 @@ export default class Model {
 
     // translate uses the underlying model to translate text
 	async translate(text: string): Promise<string> {
-        this.language;
-
         const messages: Message[] = [
             {role: 'system', content: systemPrompt(this.language)},
             {role: 'user', content: text},
