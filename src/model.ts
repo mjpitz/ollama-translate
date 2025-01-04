@@ -1,4 +1,5 @@
-import { Message, ModelResponse, Ollama } from 'ollama';
+import { Message, Ollama } from 'ollama';
+import Configuration from './configuration';
 
 // I used a llama3.2 chat to help craft this system prompt template.
 const systemPrompt = (language: string) => `
@@ -8,71 +9,64 @@ ${language}. The input to the system will be a source code comment. The output s
 text only, without any formatting or markup.
 `;
 
-export interface ModelProps {
-    language?: string,
-    model?: string,
-    host?: string,
-}
-
 // The Model class provides an interface for interacting with the underlying Ollama model. This
 // class makes it easy to test the ollama integration in an isolated way and ensure errors are
 // handled accordingly.
 export default class Model {
-    private language: string;
-    private model: string;
-    private ollama: Ollama;
+    private readonly config: typeof Configuration;
 
-    constructor(props?: ModelProps) {
-        this.language = props?.language || 'English';
-        this.model = props?.model || 'mistral-small:latest';
-        this.ollama = new Ollama({ host: props?.host });
+    private ollama: Promise<Ollama>;
+    private cache: { [key: string]: string } = {};
+
+    constructor(config: typeof Configuration) {
+        this.config = config;
+
+        this.ollama = this.refresh();
     }
 
-    // stat attempts to locate the underlying model. If an error occurs, then the promise is
-    // rejected with the associated error. If the model is not found, then the promise is rejected
-    // without an error message. The promise is only resolved when a matching model is found.
-    async stat(): Promise<ModelResponse> {
-        const resp = await this.ollama.list()
+    private async refresh(): Promise<Ollama> {
+        const ollama = new Ollama({ host: this.config.ollama.address });
 
-        const found = resp.models.find((val) => val.name === this.model);
+        const resp = await ollama.list();
+        const found = resp.models.find((val) => val.name === this.config.ollama.model);
         if (!found) {
-            return Promise.reject();
+            await ollama.pull({ model: this.config.ollama.model });
         }
 
-        return found;
-	}
+        return ollama;
+    }
 
-    // pull attempts to fetch the model from the Ollama registry.
-	async pull(): Promise<void> {
-        const resp = await this.ollama.pull({
-            model: this.model,
-            stream: true,
-        });
+    reload(): void {
+        this.refresh()
+            .then((ollama) => {
+                this.ollama = Promise.resolve(ollama);
+            });
+    }
 
-        for await (const part of resp) {
-            console.log(part);
-        }
-
-        return
-	}
-
-    // translate uses the underlying model to translate text
 	async translate(text: string): Promise<string> {
+        if (this.cache[text]) {
+            return this.cache[text];
+        }
+
+        const ollama = await this.ollama;
+
         const messages: Message[] = [
-            {role: 'system', content: systemPrompt(this.language)},
+            {role: 'system', content: systemPrompt(this.config.language)},
             {role: 'user', content: text},
         ];
 
-        const resp = await this.ollama.chat({
-            model: this.model,
+        const resp = await ollama.chat({
+            model: this.config.ollama.model,
             messages: messages,
         });
+
+        this.cache[text] = resp.message.content;
 
         return resp.message.content;
 	}
 
     // be sure to free streams when appropriate
     abort(): void {
-        this.ollama.abort();
+        this.ollama.then((ollama) => ollama.abort());
     }
 }

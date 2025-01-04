@@ -42,25 +42,26 @@
   "contributes": {
     "commands": [
       {
+        "command": "ollama-translate.enable",
+        "title": "Ollama Translate: Enable"
+      },
+      {
+        "command": "ollama-translate.disable",
+        "title": "Ollama Translate: Disable"
+      },
+      {
         "command": "ollama-translate.reload",
-        "title": "Ollama Translate: Reload"
-      },
-      {
-        "command": "ollama-translate.stat",
-        "title": "Ollama Translate: Model Status"
-      },
-      {
-        "command": "ollama-translate.pull",
-        "title": "Ollama Translate: Update Model"
-      },
-      {
-        "command": "ollama-translate.translate",
-        "title": "Ollama Translate: Translate Selected Text"
+        "title": "Ollama Translate: Force Reload"
       }
     ],
     "configuration": {
       "title": "Ollama Translate",
       "properties": {
+        "ollama-translate.codelensEnabled": {
+          "description": "If the Ollama Translate codelens functionality should be enabled.",
+          "type": "boolean",
+          "default": true
+        },
         "ollama-translate.language": {
           "description": "This is the language you prefer to read your comments in.",
           "type": "string",
