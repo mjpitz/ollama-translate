@@ -1,26 +1,150 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import Model from './model';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+type Status = 'loading'|'pulling'|'ready'|'failed';
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "llm-translate" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('llm-translate.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from llm-translate!');
-	});
-
-	context.subscriptions.push(disposable);
+interface ExtensionProps {
+	model: Model
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+// Extension mostly provides state-machine mechanics surrounding the underlying model and binds
+// operations to changes in the user interface.
+class Extension {
+	private status: Status = 'loading';
+	private failed: Error|null = null;
+	private model: Model
+
+	constructor({ model }: ExtensionProps) {
+		this.model = model		
+		
+		this.load();
+	}
+
+	abort(): void {
+		this.model.abort();
+	}
+
+	private load(): void {
+		this.model.stat()
+			.then(() => {
+				this.status = 'ready';
+				vscode.window.showInformationMessage('Model ready for use.');
+			})
+			.catch((err) => {
+				if (err) {
+					vscode.window.showErrorMessage(`Failed to check for model: ${err.Message}`);
+				} else {
+					this.pull();
+				}
+			});
+	}
+
+	stat(): void {
+		let message: string;
+
+		switch (this.status) {
+			case 'loading':
+				message = 'Checking for an existing model.';
+				break;
+			case 'pulling':
+				message = 'Updating to a newer version of the model.';
+				break;
+			case 'failed':
+				message = this.failed?.message || 'Model update failed.';
+				break;
+			case 'ready':
+				message = 'Model ready for use.';
+				break;
+			default:
+				message = `Unrecognized status: ${this.status}`;
+				break;
+		}
+
+		vscode.window.showInformationMessage(message);
+	}
+
+	pull(): void {
+		if (this.status == 'pulling') {
+			return;
+		}
+
+		this.status = 'pulling';
+		vscode.window.showInformationMessage('Updating to a newer version of the model.');
+
+		this.model.pull()
+			.then(() => {
+				this.status = 'ready'
+				vscode.window.showInformationMessage('Model ready for use.');
+			})
+			.catch((err) => {
+				this.status = 'failed';
+				this.failed = err;
+				
+				vscode.window.showErrorMessage(`Failed to update model: ${err.message}`);
+			});
+	}
+
+	async translate() {
+		switch (this.status) {
+			case 'loading':
+			case 'pulling':
+				vscode.window.showInformationMessage('Updating model, please wait.');
+				return;
+			case 'failed':
+				vscode.window.showErrorMessage(`Failed to update model: ${this.failed?.message || ''}`);
+				return;
+			case 'ready':
+				break;
+			default:
+				console.log(`Unhandled status: ${this.status}`);
+				return;
+		}
+
+		const editor = vscode.window.activeTextEditor;
+
+		if (!editor) {
+			return;
+		}
+
+		const document = editor.document;
+		const selection = editor.selection;
+
+		const text = document.getText(selection);
+		if (!text) {
+			return;
+		}
+
+		try {
+			const translated = await this.model.translate(text);
+
+			// TODO: replace with annotations
+			editor.edit(builder => {
+				builder.replace(selection, translated);
+			});
+		} catch (err: any) {
+			vscode.window.showErrorMessage(`Failed to translate text: ${err?.message || ''}`);
+		}
+	}
+}
+
+// Bootstrap VS-Code Extension
+
+let extension: Extension;
+
+export function activate(context: vscode.ExtensionContext) {
+	extension = new Extension({
+		model: new Model(),
+	});
+
+	[
+		vscode.commands.registerCommand('ollama-translate.stat', () => extension.stat()),
+		vscode.commands.registerCommand('ollama-translate.pull', () => extension.pull()),
+		vscode.commands.registerCommand('ollama-translate.translate', () => extension.translate()),
+	].forEach((disposable) => {
+		context.subscriptions.push(disposable);
+	});
+}
+
+export function deactivate() {
+	extension?.abort();
+}

@@ -1,6 +1,6 @@
 {
-  "name": "llm-translate",
-  "displayName": "llm-translate",
+  "name": "ollama-translate",
+  "displayName": "Ollama Translate",
   "description": "Uses Ollama to translate comments in code.",
   "version": "0.0.1",
   "engines": {
@@ -14,8 +14,16 @@
   "contributes": {
     "commands": [
       {
-        "command": "llm-translate.helloWorld",
-        "title": "Hello World"
+        "command": "ollama-translate.stat",
+        "title": "Ollama Translate: Model Status"
+      },
+      {
+        "command": "ollama-translate.pull",
+        "title": "Ollama Translate: Update Model"
+      },
+      {
+        "command": "ollama-translate.translate",
+        "title": "Ollama Translate: Translate Selected Text"
       }
     ]
   },
@@ -34,16 +42,17 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.96.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^8.17.0",
-    "@typescript-eslint/parser": "^8.17.0",
-    "eslint": "^9.16.0",
-    "esbuild": "^0.24.0",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.7.2",
+    "@types/node": "~20.17.11",
+    "@types/vscode": "^1.96.0",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.24.2",
+    "eslint": "^9.17.0",
+    "npm-run-all": "^4.1.5",
+    "ollama": "^0.5.11",
+    "typescript": "^5.7.2"
   }
 }
