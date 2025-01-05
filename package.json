@@ -1,8 +1,9 @@
 {
   "name": "ollama-translate",
   "displayName": "Ollama Translate",
-  "description": "Uses Ollama to translate comments in code.",
+  "description": "Automatically translate comments in code to your preferred language using a local LLM.",
   "version": "0.0.1",
+  "license": "Apache-2.0",
   "engines": {
     "vscode": "^1.96.0"
   },
