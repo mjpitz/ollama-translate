@@ -3,16 +3,12 @@ import * as vscode from 'vscode';
 // Configuration encapsulates all the configuration parameters for the ollama-translate system. The
 // current implementation requires a full reload in order for changes to take effect.
 const Configuration = {
-    get codelens(): { enabled: boolean } {
-        return {
-            get enabled(): boolean {
-                return !!vscode.workspace.getConfiguration('ollama-translate').get('codelensEnabled');
-            },
+    get enabled(): boolean {
+        return !!vscode.workspace.getConfiguration('ollama-translate').get('enabled');
+    },
 
-            set enabled(val: boolean) {
-                vscode.workspace.getConfiguration('ollama-translate').update('codelensEnabled', val, false);
-            },
-        };
+    set enabled(val: boolean) {
+        vscode.workspace.getConfiguration('ollama-translate').update('enabled', val, false);
     },
 
     get language(): string {

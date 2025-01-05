@@ -50,15 +50,15 @@
         "title": "Ollama Translate: Disable"
       },
       {
-        "command": "ollama-translate.reload",
-        "title": "Ollama Translate: Force Reload"
+        "command": "ollama-translate.translate",
+        "title": "Ollama Translate: Translate Document"
       }
     ],
     "configuration": {
       "title": "Ollama Translate",
       "properties": {
-        "ollama-translate.codelensEnabled": {
-          "description": "If the Ollama Translate codelens functionality should be enabled.",
+        "ollama-translate.enabled": {
+          "description": "If the Ollama Translate functionality should be enabled.",
           "type": "boolean",
           "default": true
         },

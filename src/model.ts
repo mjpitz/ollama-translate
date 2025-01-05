@@ -6,7 +6,8 @@ const systemPrompt = (language: string) => `
 You are an expert linguist capable of translating a variety of languages into ${language},
 priortizing native fluency and technical terminology accuracy. Translate the provided text into
 ${language}. The input to the system will be a source code comment. The output should be plain
-text only, without any formatting or markup.
+text only, without any formatting or markup. You must preserve the general formatting of the
+input text.
 `;
 
 // The Model class provides an interface for interacting with the underlying Ollama model. This
